@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班際派對遊戲 - 大電視 自由選題版</title>
+    <style>
+        :root {
+            --primary: #FF6B6B;
+            --secondary: #4ECDC4;
+            --dark: #2F3E46;
+            --light: #F7FFF7;
+            --accent: #FFE66D;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, "Microsoft JhengHei";
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--light);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            position: relative;
+        }
+
+        /* 視窗通用樣式 */
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .active {
+            display: flex;
+        }
+
+        /* 按鈕樣式 */
+        .btn {
+            background-color: var(--accent);
+            color: var(--dark);
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            margin: 15px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 20px rgba(0,0,0,0.3);
+            background-color: #fff;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+            font-size: 1.2rem;
+            padding: 10px 25px;
+        }
+
+        /* 主頁面與標題 */
+        h1 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 0px var(--primary);
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 2rem;
+            margin-bottom: 40px;
+            color: var(--accent);
+        }
+
+        /* 說明頁面 */
+        .instruction-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            max-width: 800px;
+            text-align: left;
+            font-size: 1.3rem;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .instruction-box ul {
+            list-style-type: none;
+        }
+
+        .key-hint {
+            background: var(--primary);
+            padding: 2px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        /* 九大主題目錄網格 */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 1000px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .theme-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 25px 20px;
+            font-size: 1.6rem;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .theme-btn:hover {
+            background: var(--secondary);
+            border-color: #fff;
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        /* 遊戲中版面 */
+        .game-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: absolute;
+            top: 40px;
+            padding: 0 60px;
+        }
+
+        .stats-panel {
+            display: flex;
+            gap: 30px;
+            font-size: 1.5rem;
+            background: rgba(0,0,0,0.2);
+            padding: 15px 30px;
+            border-radius: 15px;
+        }
+
+        .stat-item span {
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .timer {
+            font-size: 3.5rem;
+            font-weight: bold;
+            background: var(--primary);
+            padding: 10px 30px;
+            border-radius: 20px;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+            min-width: 180px;
+        }
+
+        .theme-indicator {
+            font-size: 2.2rem;
+            color: var(--accent);
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 25px;
+            border-radius: 30px;
+            font-weight: bold;
+        }
+
+        .word-display {
+            font-size: 8rem;
+            font-weight: 900;
+            letter-spacing: 4px;
+            margin: 40px 0;
+            text-shadow: 4px 4px 15px rgba(0,0,0,0.3);
+            animation: popIn 0.3s ease;
+            text-align: center;
+            max-width: 90%;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .game-footer {
+            position: absolute;
+            bottom: 40px;
+            font-size: 1.2rem;
+            opacity: 0.7;
+        }
+
+        /* 結束畫面 */
+        .final-score {
+            font-size: 5rem;
+            color: var(--accent);
+            margin: 30px 0;
+            font-weight: bold;
+        }
+        
+        .final-details {
+            font-size: 1.8rem;
+            margin-bottom: 40px;
+            line-height: 2;
+        }
+
+        /* 工具按鈕 (如全屏) */
+        .utility-btns {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+        .btn-fullscreen {
+            background: rgba(0, 0, 0, 0.4);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="utility-btns">
+        <button class="btn-fullscreen" onclick="toggleFullScreen()">🖥️ 全屏顯示</button>
+    </div>
+
+    <div class="container">
+        
+        <div id="start-screen" class="screen active">
+            <h1>班際派對遊戲</h1>
+            <div class="subtitle">🎉 大電視 (Big Television) 🎉</div>
+            <button class="btn" onclick="showScreen('instruction-screen')">開始遊戲</button>
+        </div>
+
+        <div id="instruction-screen" class="screen">
+            <h1>遊戲玩法說明</h1>
+            <div class="instruction-box">
+                <ul>
+                    <li>1. 猜題者背向螢幕，組員透過動作或語言提示猜出螢幕上的詞語。</li>
+                    <li>2. 提示期間<strong>不能</strong>說出題目中的任何字或諧音。</li>
+                    <li>3. 每個回合限時 <strong>2 分鐘 (120秒)</strong>。</li>
+                    <li>4. ⚡ <strong>操作人員鍵盤快捷鍵：</strong></li>
+                    <li style="margin-left: 20px; margin-top: 10px;">• <span class="key-hint">Enter 鍵</span> = <strong>答對</strong> (+50 分)</li>
+                    <li style="margin-left: 20px;">• <span class="key-hint">Space 空格鍵</span> = <strong>答錯 / Skip</strong> (-20 分)</li>
+                </ul>
+            </div>
+            <button class="btn" onclick="showScreen('menu-screen')">進入選題目錄</button>
+        </div>
+
+        <div id="menu-screen" class="screen">
+            <h1 style="font-size: 3rem; margin-bottom: 30px;">請選擇題目庫主題</h1>
+            
+            <div class="menu-grid">
+                <button class="theme-btn" onclick="startSelectedGame('運動項目')">🏃‍♂️ 運動項目</button>
+                <button class="theme-btn" onclick="startSelectedGame('節日與慶祝')">🎉 節日與慶祝</button>
+                <button class="theme-btn" onclick="startSelectedGame('美味食物')">🍟 美味食物</button>
+                <button class="theme-btn" onclick="startSelectedGame('可愛動物')">🐼 可愛動物</button>
+                <button class="theme-btn" onclick="startSelectedGame('學校與校園生活')">🏫 學校與校園生活</button>
+                <button class="theme-btn" onclick="startSelectedGame('日常生活與動作')">🛌 日常生活與動作</button>
+                <button class="theme-btn" onclick="startSelectedGame('情緒與身體反應')">🤪 情緒與身體反應</button>
+                <button class="theme-btn" onclick="startSelectedGame('常見職業與人物')">👨‍🚒 常見職業與人物</button>
+                <button class="theme-btn" onclick="startSelectedGame('童話與神話角色')">🧜‍♀️ 童話與神話角色</button>
+            </div>
+
+            <div style="display: flex; gap: 20px;">
+                <button class="btn" style="background-color: #FFE66D;" onclick="startRandomGame()">🎲 隨機挑戰一個主題</button>
+                <button class="btn btn-secondary" onclick="showScreen('start-screen')">返回主頁</button>
+            </div>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <div class="game-header">
+                <button class="btn btn-secondary" onclick="quitGame()">返回主題目錄</button>
+                <div class="timer" id="timer-display">02:00</div>
+                <div class="stats-panel">
+                    <div class="stat-item">答對: <span id="correct-count" style="color:#4ECDC4">0</span></div>
+                    <div class="stat-item">答錯: <span id="wrong-count" style="color:#FF6B6B">0</span></div>
+                    <div class="stat-item">分數: <span id="score-display">0</span></div>
+                </div>
+            </div>
+
+            <div class="theme-indicator">主題：<span id="current-theme">---</span></div>
+            <div class="word-display" id="word-display">準備...</div>
+
+            <div class="game-footer">
+                操作提示：[Enter] 答對 | [Space] 答錯
+            </div>
+        </div>
+
+        <div id="gameover-screen" class="screen">
+            <h1>⏱️ 時間到！遊戲結束 ⏱️</h1>
+            <div class="final-score" id="final-score-display">0 分</div>
+            <div class="final-details">
+                主題：<span id="final-theme" style="color:var(--accent)">---</span><br>
+                答對題數：<span id="final-correct" style="color:#4ECDC4">0</span> 題<br>
+                答錯/跳過題數：<span id="final-wrong" style="color:#FF6B6B">0</span> 題
+            </div>
+            <div>
+                <button class="btn" onclick="showScreen('menu-screen')">返回選題目錄</button>
+                <button class="btn btn-secondary" onclick="showScreen('start-screen')">返回主頁</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 9大主題終極題庫 ---
+        const questionBank = {
+            "運動項目": ["長跑", "乒乓球", "游泳", "羽毛球", "躲避球", "跆拳道", "高爾夫球", "溜冰", "跳遠", "舉重", "拔河", "劍擊", "排球", "跨欄", "保齡球"],
+            "節日與慶祝": ["聖誕節", "中秋節", "萬聖節", "農曆新年", "復活節", "端午節", "生日派對", "畢業典禮", "跨年倒數", "母親節", "情人節", "重陽節"],
+            "美味食物": ["珍珠奶茶", "雞蛋仔", "壽司", "漢堡包", "麻辣火鍋", "意大利麵", "爆谷", "炸雞", "咖哩魚蛋", "西瓜", "冰淇淋", "蛋撻", "薯條", "沙律"],
+            "可愛動物": ["企鵝", "長頸鹿", "袋鼠", "熊貓", "倉鼠", "獅子", "變色龍", "海豚", "柴犬", "貓頭鷹", "蜜蜂", "大象", "蚊子", "孔雀", "樹懶"],
+            "學校與校園生活": ["班主任", "小食部", "體育課", "測驗", "課外活動", "書包", "手冊", "粉筆", "風紀", "功課", "圖書館", "放學", "班長", "校長", "訓導主任", "體育老師", "電腦室", "黑板擦", "通告", "默書", "小息", "排隊", "舉手發言", "忘記帶功課", "陸運會"],
+            "日常生活與動作": ["刷牙", "洗頭", "照鏡子", "綁鞋帶", "打噴嚏", "夢遊", "挖鼻孔", "看恐怖片", "玩Switch", "踩單車", "跳繩", "游水", "彈鋼琴", "看漫畫", "搭巴士"],
+            "情緒與身體反應": ["生氣", "大哭", "害羞", "嚇一跳", "得意洋洋", "目瞪口呆", "肚子痛", "腳麻", "頭暈", "發抖", "肚子餓到沒力氣", "打瞌睡"],
+            "常見職業與人物": ["廚師", "警察", "醫生", "消防員", "外送員", "太空人", "清潔工人"],
+            "童話與神話角色": ["白雪公主", "美人魚", "灰姑娘", "孫悟空", "豬八戒", "小紅帽", "大灰狼", "聖誕老人"]
+        };
+
+        // --- 遊戲變數 ---
+        let currentTheme = "";
+        let currentWords = [];
+        let wordIndex = 0;
+        let score = 0;
+        let correctCount = 0;
+        let wrongCount = 0;
+        let timeLeft = 120; 
+        let timerInterval = null;
+        let isPlaying = false;
+
+        // --- 畫面切換控制 ---
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // --- 隨機模式 ---
+        function startRandomGame() {
+            const themes = Object.keys(questionBank);
+            const chosenTheme = themes[Math.floor(Math.random() * themes.length)];
+            setupAndStart(chosenTheme);
+        }
+
+        // --- 指定主題模式 ---
+        function startSelectedGame(themeName) {
+            setupAndStart(themeName);
+        }
+
+        // --- 初始化並啟動遊戲 ---
+        function setupAndStart(theme) {
+            currentTheme = theme;
+            currentWords = [...questionBank[currentTheme]];
+            currentWords.sort(() => Math.random() - 0.5); // 洗牌
+            
+            wordIndex = 0;
+            score = 0;
+            correctCount = 0;
+            wrongCount = 0;
+            timeLeft = 120;
+            isPlaying = true;
+
+            document.getElementById('current-theme').innerText = currentTheme;
+            document.getElementById('correct-count').innerText = correctCount;
+            document.getElementById('wrong-count').innerText = wrongCount;
+            document.getElementById('score-display').innerText = score;
+            updateTimerDisplay();
+            nextWord();
+
+            showScreen('game-screen');
+            clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        // --- 顯示下一題 ---
+        function nextWord() {
+            if (wordIndex < currentWords.length) {
+                document.getElementById('word-display').innerText = currentWords[wordIndex];
+            } else {
+                currentWords.sort(() => Math.random() - 0.5);
+                wordIndex = 0;
+                document.getElementById('word-display').innerText = currentWords[wordIndex];
+            }
+        }
+
+        // --- 計時器邏輯 ---
+        function updateTimer() {
+            timeLeft--;
+            updateTimerDisplay();
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const seconds = (timeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerText = `${minutes}:${seconds}`;
+        }
+
+        // --- 結束遊戲 ---
+        function endGame() {
+            isPlaying = false;
+            clearInterval(timerInterval);
+            
+            document.getElementById('final-score-display').innerText = `${score} 分`;
+            document.getElementById('final-theme').innerText = currentTheme;
+            document.getElementById('final-correct').innerText = correctCount;
+            document.getElementById('final-wrong').innerText = wrongCount;
+
+            showScreen('gameover-screen');
+        }
+
+        // --- 中途退出 ---
+        function quitGame() {
+            if(confirm("確定要結束這局遊戲並返回目錄嗎？")) {
+                isPlaying = false;
+                clearInterval(timerInterval);
+                showScreen('menu-screen');
+            }
+        }
+
+        // --- 鍵盤操作監聽 ---
+        document.addEventListener('keydown', function(event) {
+            if (!isPlaying) return; 
+
+            if (event.key === 'Enter') {
+                correctCount++;
+                score += 50;
+                wordIndex++;
+                updateStats();
+                nextWord();
+                event.preventDefault(); 
+            } else if (event.key === ' ' || event.code === 'Space') {
+                wrongCount++;
+                score -= 20;
+                wordIndex++;
+                updateStats();
+                nextWord();
+                event.preventDefault(); 
+            }
+        });
+
+        function updateStats() {
+            document.getElementById('correct-count').innerText = correctCount;
+            document.getElementById('wrong-count').innerText = wrongCount;
+            document.getElementById('score-display').innerText = score;
+        }
+
+        // --- 全屏切換功能 ---
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    alert(`無法切換至全屏模式: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+    </script>
+</body>
+</html>
